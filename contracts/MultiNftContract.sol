@@ -8,22 +8,23 @@ import "./Ownable.sol";
 import "./SafeMath.sol";
 import "./Counters.sol";
 
-contract RaribleContract is ERC721Enumerable, Ownable, ERC721Burnable {
+contract MultiNftContract is ERC721Enumerable, Ownable, ERC721Burnable {
     using SafeMath for uint256;
     using Counters for Counters.Counter;
 
     Counters.Counter private _tokenIdTracker;
 
     uint256 public constant MAX_ELEMENTS = 10000;
-    uint256 public constant MAX_BY_MINT = 20;
-    address public constant creatorAddress = 0x92F545708BCD3E0168627CC988b3c489783D9a90;
-    
-    mapping (uint256 => uint256) _price;
+    uint256 public constant PRICE = 7 * 10**16;
+    address public constant creatorAddress = 0x46C1aD913af291f84328D912d8Cd64d41FC3A4D0;
+    string public baseTokenURI;
     bool private _pause;
+    bool[10001] public _isMint;
 
     event JoinFace(uint256 indexed id);
 
-    constructor() ERC721("DaFeisNFT", "DFN") {
+    constructor(string memory baseURI) ERC721("MultiNftContract", "MN") {
+        setBaseURI(baseURI);
         pause(true);
     }
 
@@ -40,39 +41,22 @@ contract RaribleContract is ERC721Enumerable, Ownable, ERC721Burnable {
     function totalMint() public view returns (uint256) {
         return _totalSupply();
     }
-    function setPrice(uint256[] memory _tokenId, uint256[] memory _tokenPrice) public onlyOwner {
-        require(_tokenId.length == _tokenPrice.length, "Unmatched input data");
-        for (uint i = 0; i < _tokenId.length; i ++) {
-            require(_tokenId[i] <= MAX_ELEMENTS, "Token id exceeds");
-            require(_tokenPrice[i] > 0, "Price must be greater than 0");
-            _price[_tokenId[i]] = _tokenPrice[i];
-        }
-    }
-    function mint(address _to, uint256 _count, string[] memory _tokenURI) public payable saleIsOpen {
+    function mint(address _to, uint256 id) public payable saleIsOpen {
         uint256 total = _totalSupply();
-        require(total + _count <= MAX_ELEMENTS, "Max limit");
+        require(total + 1 <= MAX_ELEMENTS, "Max limit");
         require(total <= MAX_ELEMENTS, "Sale end");
-        require(_count <= MAX_BY_MINT, "Exceeds number");
-        require(_price[total + _count] != 0, "Token is not exist");
-        require(msg.value >= price(_count), "Value below price");
-        require(_tokenURI.length == _count, "Token URI input failed");
-        for (uint256 i = 0; i < _count; i++) {
-            _mintAnElement(_to, _tokenURI[i]);
-        }
-    }
-    function _mintAnElement(address _to, string memory _tokenURI) private {
-        uint id = _totalSupply();
+        require(msg.value >= PRICE, "Value below price");
+        require(!_isMint[id], "Already minted");
         _tokenIdTracker.increment();
-        setTokenURI(id + 1, _tokenURI);
-        _safeMint(_to, id + 1);
-        emit JoinFace(id + 1);
+        _safeMint(_to, id);
+        _isMint[id] = true;
+        emit JoinFace(id);
     }
-    function price(uint256 _count) public view returns (uint256) {
-        uint id = _totalSupply();
-        uint _totalPrice = 0;
-        for (uint i = 1; i <= _count; i ++)
-            _totalPrice += _price[id + i];
-        return _totalPrice;
+    function _baseURI() internal view virtual override returns (string memory) {
+        return baseTokenURI;
+    }
+    function setBaseURI(string memory baseURI) public onlyOwner {
+        baseTokenURI = baseURI;
     }
     function walletOfOwner(address _owner) external view returns (uint256[] memory) {
         uint256 tokenCount = balanceOf(_owner);

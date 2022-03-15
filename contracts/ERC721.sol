@@ -19,9 +19,6 @@ contract ERC721 is Context, ERC165, IERC721, IERC721Metadata {
     using Address for address;
     using Strings for uint256;
 
-    // Token URL
-    mapping (uint256 => string) public _tokenURL;
-
     // Token name
     string private _name;
 
@@ -94,11 +91,18 @@ contract ERC721 is Context, ERC165, IERC721, IERC721Metadata {
      */
     function tokenURI(uint256 tokenId) public view virtual override returns (string memory) {
         require(_exists(tokenId), "ERC721Metadata: URI query for nonexistent token");
-        return _tokenURL[tokenId];
+
+        string memory baseURI = _baseURI();
+        return bytes(baseURI).length > 0 ? string(abi.encodePacked(baseURI, tokenId.toString())) : "";
     }
 
-    function setTokenURI(uint256 tokenId, string memory tokenURL) internal virtual {
-       _tokenURL[tokenId] = tokenURL; 
+    /**
+     * @dev Base URI for computing {tokenURI}. If set, the resulting URI for each
+     * token will be the concatenation of the `baseURI` and the `tokenId`. Empty
+     * by default, can be overriden in child contracts.
+     */
+    function _baseURI() internal view virtual returns (string memory) {
+        return "";
     }
 
     /**
