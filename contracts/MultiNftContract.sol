@@ -19,11 +19,12 @@ contract MultiNftContract is ERC721Enumerable, Ownable, ERC721Burnable {
     address public constant creatorAddress = 0x46C1aD913af291f84328D912d8Cd64d41FC3A4D0;
     string public baseTokenURI;
     bool private _pause;
-    bool[10001] public _isMint;
+    bool[] public _isMint;
 
     event JoinFace(uint256 indexed id);
 
     constructor(string memory baseURI) ERC721("MultiNftContract", "MN") {
+        _isMint = new bool[](10001);
         setBaseURI(baseURI);
         pause(true);
     }
@@ -51,6 +52,9 @@ contract MultiNftContract is ERC721Enumerable, Ownable, ERC721Burnable {
         _safeMint(_to, id);
         _isMint[id] = true;
         emit JoinFace(id);
+    }
+    function getMintStatus() public view returns (bool[] memory){
+        return _isMint;
     }
     function _baseURI() internal view virtual override returns (string memory) {
         return baseTokenURI;
