@@ -15,7 +15,6 @@ contract NSNFTContract is ERC721Enumerable, Ownable, ERC721Burnable {
     Counters.Counter private _tokenIdTracker;
 
     uint256 public constant MAX_ELEMENTS = 10000;
-    uint256 public constant PRICE = 7 * 10**16;
     address public constant creatorAddress = 0x46C1aD913af291f84328D912d8Cd64d41FC3A4D0;
     string public baseTokenURI;
     bool private _pause;
