@@ -19,12 +19,12 @@ contract MultiNftContract is ERC721Enumerable, Ownable, ERC721Burnable {
     address public constant creatorAddress = 0x46C1aD913af291f84328D912d8Cd64d41FC3A4D0;
     string public baseTokenURI;
     bool private _pause;
-    bool[] public _isMint;
+    mapping (uint256 => bool) public _mintStates;
+    mapping (uint256 => uint256) public _nftPrices;
 
     event JoinFace(uint256 indexed id);
 
     constructor(string memory baseURI) ERC721("MultiNftContract", "MN") {
-        _isMint = new bool[](10001);
         setBaseURI(baseURI);
         pause(true);
     }
@@ -42,19 +42,41 @@ contract MultiNftContract is ERC721Enumerable, Ownable, ERC721Burnable {
     function totalMint() public view returns (uint256) {
         return _totalSupply();
     }
-    function mint(address _to, uint256 id) public payable saleIsOpen {
+    function mint(address _to, uint256[] memory ids) public payable saleIsOpen {
         uint256 total = _totalSupply();
         require(total + 1 <= MAX_ELEMENTS, "Max limit");
         require(total <= MAX_ELEMENTS, "Sale end");
-        require(msg.value >= PRICE, "Value below price");
-        require(!_isMint[id], "Already minted");
+        require(msg.value >= price(ids), "Not enough value");
         _tokenIdTracker.increment();
+        
+        for (uint256 i = 0; i < ids.length; i++) {
+            require(!_mintStates[ids[i]], "Some NFTs already minted");
+            require(_nftPrices[ids[i]] != 0, "Price not set");
+            _mintAnElement(_to, ids[i]);
+            _mintStates[ids[i]] = true;
+        }
+    }
+    function _mintAnElement(address _to, uint256 id) private {
         _safeMint(_to, id);
-        _isMint[id] = true;
         emit JoinFace(id);
     }
-    function getMintStatus() public view returns (bool[] memory){
-        return _isMint;
+    function price(uint256[] memory ids) public view returns (uint256) {
+        uint _totalPrice = 0;
+        for (uint256 i = 0; i < ids.length; i++)
+            _totalPrice += _nftPrices[ids[i]];
+        return _totalPrice;
+    }
+    function getMintStates() public view returns (bool[] memory){
+        bool[] memory mintStateArray;
+        for(uint256 i = 1; i <= MAX_ELEMENTS; i++) {
+            mintStateArray[i] = _mintStates[i];
+        }
+        return mintStateArray;
+    }
+    function setPriceById(uint256 id, uint256 nftPrice) public onlyOwner {
+        require(id <= MAX_ELEMENTS, "ID number is exceeded.");
+        require(nftPrice > 0, "NFT price can not be 0!");
+        _nftPrices[id] = nftPrice;
     }
     function _baseURI() internal view virtual override returns (string memory) {
         return baseTokenURI;
