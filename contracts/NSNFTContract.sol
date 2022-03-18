@@ -8,7 +8,7 @@ import "./Ownable.sol";
 import "./SafeMath.sol";
 import "./Counters.sol";
 
-contract MultiNftContract is ERC721Enumerable, Ownable, ERC721Burnable {
+contract NSNFTContract is ERC721Enumerable, Ownable, ERC721Burnable {
     using SafeMath for uint256;
     using Counters for Counters.Counter;
 
@@ -24,7 +24,7 @@ contract MultiNftContract is ERC721Enumerable, Ownable, ERC721Burnable {
 
     event JoinFace(uint256 indexed id);
 
-    constructor(string memory baseURI) ERC721("MultiNftContract", "MN") {
+    constructor(string memory baseURI) ERC721("NSNFTContract", "NSN") {
         setBaseURI(baseURI);
         pause(true);
     }
