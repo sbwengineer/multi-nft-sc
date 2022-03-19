@@ -35,7 +35,7 @@ contract NSNFTContract is ERC721Enumerable, Ownable, ERC721Burnable {
         }
         _;
     }
-    function _totalSupply() internal view returns (uint) {
+    function _totalSupply() internal view returns (uint256) {
         return _tokenIdTracker.current();
     }
     function totalMint() public view returns (uint256) {
@@ -67,8 +67,15 @@ contract NSNFTContract is ERC721Enumerable, Ownable, ERC721Burnable {
         for (uint256 i = 0; i < ids.length; i++) {
             require(ids[i] <= MAX_ELEMENTS, "ID number is exceeded.");
             require(nftPrice > 0, "NFT price can not be 0!");
-            _nftPrices[i] = nftPrice;
+            _nftPrices[ids[i]] = nftPrice;
         }
+    }
+    function getMintStates() public view returns (bool[] memory) {
+        bool[] memory mintStatesArray = new bool[](10001);
+        for(uint i = 1; i < MAX_ELEMENTS; i++) {
+            mintStatesArray[i] = _mintStates[i];
+        }
+        return mintStatesArray;
     }
     function _baseURI() internal view virtual override returns (string memory) {
         return baseTokenURI;
