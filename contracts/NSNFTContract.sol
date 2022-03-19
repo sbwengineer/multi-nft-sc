@@ -42,6 +42,7 @@ contract NSNFTContract is ERC721Enumerable, Ownable, ERC721Burnable {
         return _totalSupply();
     }
     function mint(address _to, uint256[] memory ids) public payable saleIsOpen {
+        require(msg.value >= price(ids), "Not enough value");
         for (uint256 i = 0; i < ids.length; i++) {
             require(!_mintStates[ids[i]], "Some NFTs already minted");
             require(_nftPrices[ids[i]] != 0, "Price not set");
@@ -52,7 +53,6 @@ contract NSNFTContract is ERC721Enumerable, Ownable, ERC721Burnable {
     function _mintAnElement(address _to, uint256 id) private {
         uint256 total = _totalSupply();
         require(total + 1 <= MAX_ELEMENTS, "Max limit");
-        require(msg.value >= price(ids), "Not enough value");
         _safeMint(_to, id);
         _tokenIdTracker.increment();
         emit JoinFace(id);
