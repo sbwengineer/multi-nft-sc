@@ -42,12 +42,6 @@ contract NSNFTContract is ERC721Enumerable, Ownable, ERC721Burnable {
         return _totalSupply();
     }
     function mint(address _to, uint256[] memory ids) public payable saleIsOpen {
-        uint256 total = _totalSupply();
-        require(total + 1 <= MAX_ELEMENTS, "Max limit");
-        require(total <= MAX_ELEMENTS, "Sale end");
-        require(msg.value >= price(ids), "Not enough value");
-        _tokenIdTracker.increment();
-        
         for (uint256 i = 0; i < ids.length; i++) {
             require(!_mintStates[ids[i]], "Some NFTs already minted");
             require(_nftPrices[ids[i]] != 0, "Price not set");
@@ -56,7 +50,11 @@ contract NSNFTContract is ERC721Enumerable, Ownable, ERC721Burnable {
         }
     }
     function _mintAnElement(address _to, uint256 id) private {
+        uint256 total = _totalSupply();
+        require(total + 1 <= MAX_ELEMENTS, "Max limit");
+        require(msg.value >= price(ids), "Not enough value");
         _safeMint(_to, id);
+        _tokenIdTracker.increment();
         emit JoinFace(id);
     }
     function price(uint256[] memory ids) public view returns (uint256) {
@@ -65,17 +63,12 @@ contract NSNFTContract is ERC721Enumerable, Ownable, ERC721Burnable {
             _totalPrice += _nftPrices[ids[i]];
         return _totalPrice;
     }
-    function getMintStates() public view returns (bool[] memory){
-        bool[] memory mintStateArray;
-        for(uint256 i = 1; i <= MAX_ELEMENTS; i++) {
-            mintStateArray[i] = _mintStates[i];
+    function setPrices(uint256[] memory ids, uint256 nftPrice) public onlyOwner {
+        for (uint256 i = 0; i < ids.length; i++) {
+            require(ids[i] <= MAX_ELEMENTS, "ID number is exceeded.");
+            require(nftPrice > 0, "NFT price can not be 0!");
+            _nftPrices[i] = nftPrice;
         }
-        return mintStateArray;
-    }
-    function setPriceById(uint256 id, uint256 nftPrice) public onlyOwner {
-        require(id <= MAX_ELEMENTS, "ID number is exceeded.");
-        require(nftPrice > 0, "NFT price can not be 0!");
-        _nftPrices[id] = nftPrice;
     }
     function _baseURI() internal view virtual override returns (string memory) {
         return baseTokenURI;
@@ -96,7 +89,7 @@ contract NSNFTContract is ERC721Enumerable, Ownable, ERC721Burnable {
     }
     function withdrawAll() public payable onlyOwner {
         uint256 balance = address(this).balance;
-        require(balance > 0);
+        require(balance > 0, "No balance");
         _widthdraw(creatorAddress, address(this).balance);
     }
     function _widthdraw(address _address, uint256 _amount) private {
