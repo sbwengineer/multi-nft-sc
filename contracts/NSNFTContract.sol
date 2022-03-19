@@ -77,6 +77,13 @@ contract NSNFTContract is ERC721Enumerable, Ownable, ERC721Burnable {
         }
         return mintStatesArray;
     }
+    function getNftPrices() public view returns (uint[] memory) {
+        uint[] memory priceArray = new uint[](10001);
+        for(uint i = 1; i < MAX_ELEMENTS; i++) {
+            priceArray[i] = _nftPrices[i];
+        }
+        return priceArray;
+    }
     function _baseURI() internal view virtual override returns (string memory) {
         return baseTokenURI;
     }
