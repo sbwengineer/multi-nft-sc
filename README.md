@@ -1,1 +1,1 @@
-# rarible-sc
+# NS NFT Marketpalce Smart Contracts
